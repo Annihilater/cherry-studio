@@ -1,16 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { ThemeMode } from '@renderer/types'
 
 export type SendMessageShortcut = 'Enter' | 'Shift+Enter'
 
-export enum ThemeMode {
-  light = 'light',
-  dark = 'dark',
-  auto = 'auto'
-}
-
 export interface SettingsState {
-  showRightSidebar: boolean
   showAssistants: boolean
+  showTopics: boolean
   sendMessageShortcut: SendMessageShortcut
   language: string
   proxyUrl?: string
@@ -19,33 +14,46 @@ export interface SettingsState {
   messageFont: 'system' | 'serif'
   showInputEstimatedTokens: boolean
   theme: ThemeMode
+  windowStyle: 'transparent' | 'opaque'
+  fontSize: number
+  topicPosition: 'left' | 'right'
+  pasteLongTextAsFile: boolean
+  clickAssistantToShowTopic: boolean
 }
 
 const initialState: SettingsState = {
-  showRightSidebar: true,
   showAssistants: true,
+  showTopics: true,
   sendMessageShortcut: 'Enter',
   language: navigator.language,
   proxyUrl: undefined,
   userName: '',
-  showMessageDivider: true,
+  showMessageDivider: false,
   messageFont: 'system',
   showInputEstimatedTokens: false,
-  theme: ThemeMode.light
+  theme: ThemeMode.light,
+  windowStyle: 'opaque',
+  fontSize: 14,
+  topicPosition: 'right',
+  pasteLongTextAsFile: true,
+  clickAssistantToShowTopic: false
 }
 
 const settingsSlice = createSlice({
   name: 'settings',
   initialState,
   reducers: {
-    toggleRightSidebar: (state) => {
-      state.showRightSidebar = !state.showRightSidebar
-    },
-    setShowRightSidebar: (state, action: PayloadAction<boolean>) => {
-      state.showRightSidebar = action.payload
+    setShowAssistants: (state, action: PayloadAction<boolean>) => {
+      state.showAssistants = action.payload
     },
     toggleShowAssistants: (state) => {
       state.showAssistants = !state.showAssistants
+    },
+    setShowTopics: (state, action: PayloadAction<boolean>) => {
+      state.showTopics = action.payload
+    },
+    toggleShowTopics: (state) => {
+      state.showTopics = !state.showTopics
     },
     setSendMessageShortcut: (state, action: PayloadAction<SendMessageShortcut>) => {
       state.sendMessageShortcut = action.payload
@@ -70,14 +78,31 @@ const settingsSlice = createSlice({
     },
     setTheme: (state, action: PayloadAction<ThemeMode>) => {
       state.theme = action.payload
+    },
+    setFontSize: (state, action: PayloadAction<number>) => {
+      state.fontSize = action.payload
+    },
+    setWindowStyle: (state, action: PayloadAction<'transparent' | 'opaque'>) => {
+      state.windowStyle = action.payload
+      console.log(state.windowStyle)
+    },
+    setTopicPosition: (state, action: PayloadAction<'left' | 'right'>) => {
+      state.topicPosition = action.payload
+    },
+    setPasteLongTextAsFile: (state, action: PayloadAction<boolean>) => {
+      state.pasteLongTextAsFile = action.payload
+    },
+    setClickAssistantToShowTopic: (state, action: PayloadAction<boolean>) => {
+      state.clickAssistantToShowTopic = action.payload
     }
   }
 })
 
 export const {
-  setShowRightSidebar,
-  toggleRightSidebar,
+  setShowAssistants,
   toggleShowAssistants,
+  setShowTopics,
+  toggleShowTopics,
   setSendMessageShortcut,
   setLanguage,
   setProxyUrl,
@@ -85,7 +110,12 @@ export const {
   setShowMessageDivider,
   setMessageFont,
   setShowInputEstimatedTokens,
-  setTheme
+  setTheme,
+  setFontSize,
+  setWindowStyle,
+  setTopicPosition,
+  setPasteLongTextAsFile,
+  setClickAssistantToShowTopic
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

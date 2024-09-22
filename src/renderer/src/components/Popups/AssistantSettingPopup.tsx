@@ -34,7 +34,15 @@ const AssistantSettingPopupContainer: React.FC<Props> = ({ assistant, resolve })
   }
 
   return (
-    <Modal title={assistant.name} open={open} onOk={onOk} onCancel={handleCancel} afterClose={onClose}>
+    <Modal
+      title={assistant.name}
+      open={open}
+      onOk={onOk}
+      onCancel={handleCancel}
+      afterClose={onClose}
+      transitionName="ant-move-down"
+      maskTransitionName="ant-fade"
+      centered>
       <Box mb={8}>{t('common.name')}</Box>
       <Input
         placeholder={t('common.assistant') + t('common.name')}
@@ -45,7 +53,7 @@ const AssistantSettingPopupContainer: React.FC<Props> = ({ assistant, resolve })
         {t('common.prompt')}
       </Box>
       <TextArea
-        rows={4}
+        rows={10}
         placeholder={t('common.assistant') + t('common.prompt')}
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}

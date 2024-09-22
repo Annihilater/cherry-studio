@@ -20,20 +20,24 @@ export type AssistantSettings = {
 
 export type Message = {
   id: string
+  assistantId: string
   role: 'user' | 'assistant'
   content: string
-  assistantId: string
   topicId: string
-  modelId?: string
   createdAt: string
   status: 'sending' | 'pending' | 'success' | 'paused' | 'error'
+  modelId?: string
+  files?: FileType[]
+  images?: string[]
   usage?: OpenAI.Completions.CompletionUsage
-  type?: 'text' | '@'
+  type?: 'text' | '@' | 'clear'
 }
 
 export type Topic = {
   id: string
   name: string
+  createdAt: string
+  updatedAt: string
   messages: Message[]
 }
 
@@ -74,4 +78,39 @@ export type Agent = {
 
 export type Suggestion = {
   content: string
+}
+
+export type MinAppType = {
+  id?: string | number
+  name: string
+  logo: string
+  url: string
+}
+
+export interface FileType {
+  id: string
+  name: string
+  origin_name: string
+  path: string
+  size: number
+  ext: string
+  type: FileTypes
+  created_at: Date
+  count: number
+  tokens?: number
+}
+
+export enum FileTypes {
+  IMAGE = 'image',
+  VIDEO = 'video',
+  AUDIO = 'audio',
+  TEXT = 'text',
+  DOCUMENT = 'document',
+  OTHER = 'other'
+}
+
+export enum ThemeMode {
+  light = 'light',
+  dark = 'dark',
+  auto = 'auto'
 }

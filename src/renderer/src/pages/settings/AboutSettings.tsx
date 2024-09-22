@@ -1,13 +1,18 @@
-import Logo from '@renderer/assets/images/logo.png'
+import { GithubOutlined } from '@ant-design/icons'
+import { FileProtectOutlined, GlobalOutlined, MailOutlined, SoundOutlined } from '@ant-design/icons'
+import { HStack } from '@renderer/components/Layout'
+import MinApp from '@renderer/components/MinApp'
+import { APP_NAME, AppLogo } from '@renderer/config/env'
 import { runAsyncFunction } from '@renderer/utils'
 import { Avatar, Button, Progress, Row, Tag } from 'antd'
 import { ProgressInfo } from 'electron-updater'
 import { debounce } from 'lodash'
 import { FC, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { SettingContainer, SettingDivider, SettingRow, SettingRowTitle, SettingTitle } from './components'
+import { SettingContainer, SettingDivider, SettingRow, SettingTitle } from '.'
 
 const AboutSettings: FC = () => {
   const [version, setVersion] = useState('')
@@ -39,7 +44,7 @@ const AboutSettings: FC = () => {
 
   const mailto = async () => {
     const email = 'kangfenmao@qq.com'
-    const subject = 'Cherry Studio Feedback'
+    const subject = `${APP_NAME} Feedback`
     const version = (await window.api.getAppInfo()).version
     const platform = window.electron.process.platform
     const url = `mailto:${email}?subject=${subject}&body=%0A%0AVersion: ${version} | Platform: ${platform}`
@@ -90,7 +95,14 @@ const AboutSettings: FC = () => {
 
   return (
     <SettingContainer>
-      <SettingTitle>{t('settings.about.title')}</SettingTitle>
+      <SettingTitle>
+        {t('settings.about.title')}
+        <HStack alignItems="center">
+          <Link to="https://github.com/kangfenmao/cherry-studio">
+            <GithubOutlined style={{ marginRight: 4, color: 'var(--color-text)', fontSize: 20 }} />
+          </Link>
+        </HStack>
+      </SettingTitle>
       <SettingDivider />
       <AboutHeader>
         <Row align="middle">
@@ -105,10 +117,10 @@ const AboutSettings: FC = () => {
                 strokeColor="#67ad5b"
               />
             )}
-            <Avatar src={Logo} size={80} style={{ minHeight: 80 }} />
+            <Avatar src={AppLogo} size={80} style={{ minHeight: 80 }} />
           </AvatarWrapper>
           <VersionWrapper>
-            <Title>Cherry Studio</Title>
+            <Title>{APP_NAME}</Title>
             <Description>{t('settings.about.description')}</Description>
             <Tag
               onClick={() => onOpenWebsite('https://github.com/kangfenmao/cherry-studio/releases')}
@@ -124,31 +136,52 @@ const AboutSettings: FC = () => {
       </AboutHeader>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.about.releases.title')}</SettingRowTitle>
-        <Button onClick={() => onOpenWebsite('https://github.com/kangfenmao/cherry-studio/releases')}>
+        <SettingRowTitle>
+          <SoundOutlined />
+          {t('settings.about.releases.title')}
+        </SettingRowTitle>
+        <Button
+          onClick={() =>
+            MinApp.start({
+              name: t('settings.about.releases.title'),
+              url: 'https://github.com/kangfenmao/cherry-studio/releases',
+              logo: ''
+            })
+          }>
           {t('settings.about.releases.button')}
         </Button>
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.about.website.title')}</SettingRowTitle>
+        <SettingRowTitle>
+          <GlobalOutlined />
+          {t('settings.about.website.title')}
+        </SettingRowTitle>
         <Button onClick={() => onOpenWebsite('https://cherry-ai.com')}>{t('settings.about.website.button')}</Button>
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.about.feedback.title')}</SettingRowTitle>
-        <Button onClick={() => onOpenWebsite('https://github.com/kangfenmao/cherry-studio/issues')}>
+        <SettingRowTitle>
+          <GithubOutlined />
+          {t('settings.about.feedback.title')}
+        </SettingRowTitle>
+        <Button onClick={() => onOpenWebsite('https://github.com/kangfenmao/cherry-studio/issues/new')}>
           {t('settings.about.feedback.button')}
         </Button>
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.about.license.title')}</SettingRowTitle>
+        <SettingRowTitle>
+          <FileProtectOutlined />
+          {t('settings.about.license.title')}
+        </SettingRowTitle>
         <Button onClick={showLicense}>{t('settings.about.license.button')}</Button>
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.about.contact.title')}</SettingRowTitle>
+        <SettingRowTitle>
+          <MailOutlined /> {t('settings.about.contact.title')}
+        </SettingRowTitle>
         <Button onClick={mailto}>{t('settings.about.contact.button')}</Button>
       </SettingRow>
       <SettingDivider />
@@ -198,6 +231,20 @@ const ProgressCircle = styled(Progress)`
   position: absolute;
   top: -2px;
   left: -2px;
+`
+
+export const SettingRowTitle = styled.div`
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--color-text-1);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  .anticon {
+    font-size: 16px;
+    color: var(--color-text-1);
+  }
 `
 
 export default AboutSettings

@@ -1,77 +1,43 @@
-import { Navbar, NavbarLeft, NavbarRight } from '@renderer/components/app/Navbar'
-import { isMac, isWindows } from '@renderer/config/constant'
-import { useAssistants, useDefaultAssistant } from '@renderer/hooks/useAssistant'
-import { useShowAssistants, useShowRightSidebar } from '@renderer/hooks/useStore'
-import { useTheme } from '@renderer/providers/ThemeProvider'
+import { useAssistants } from '@renderer/hooks/useAssistant'
+import { useShowAssistants } from '@renderer/hooks/useStore'
+import { useActiveTopic } from '@renderer/hooks/useTopic'
 import { Assistant } from '@renderer/types'
-import { uuid } from '@renderer/utils'
-import { Switch } from 'antd'
 import { FC, useState } from 'react'
 import styled from 'styled-components'
 
-import AddAssistantPopup from './components/AddAssistantPopup'
-import Assistants from './components/Assistants'
-import Chat from './components/Chat'
-import Navigation from './components/NavigationCenter'
+import Chat from './Chat'
+import Navbar from './Navbar'
+import RightSidebar from './RightSidebar'
 
 let _activeAssistant: Assistant
 
 const HomePage: FC = () => {
-  const { assistants, addAssistant } = useAssistants()
+  const { assistants } = useAssistants()
   const [activeAssistant, setActiveAssistant] = useState(_activeAssistant || assistants[0])
-  const { rightSidebarShown, toggleRightSidebar } = useShowRightSidebar()
-  const { showAssistants, toggleShowAssistants } = useShowAssistants()
-  const { defaultAssistant } = useDefaultAssistant()
-  const { theme, toggleTheme } = useTheme()
+  const { showAssistants } = useShowAssistants()
+  const { activeTopic, setActiveTopic } = useActiveTopic(activeAssistant)
 
   _activeAssistant = activeAssistant
 
-  const onCreateDefaultAssistant = () => {
-    const assistant = { ...defaultAssistant, id: uuid() }
-    addAssistant(assistant)
-    setActiveAssistant(assistant)
-  }
-
-  const onCreateAssistant = async () => {
-    const assistant = await AddAssistantPopup.show()
-    assistant && setActiveAssistant(assistant)
-  }
-
   return (
     <Container>
-      <Navbar>
-        {showAssistants && (
-          <NavbarLeft style={{ justifyContent: 'space-between', borderRight: 'none', padding: '0 8px' }}>
-            <NewButton onClick={toggleShowAssistants} style={{ marginLeft: isMac ? 8 : 0 }}>
-              <i className="iconfont icon-hidesidebarhoriz" />
-            </NewButton>
-            <NewButton onClick={onCreateAssistant}>
-              <i className="iconfont icon-a-addchat"></i>
-            </NewButton>
-          </NavbarLeft>
-        )}
-        <Navigation activeAssistant={activeAssistant} />
-        <NavbarRight style={{ justifyContent: 'flex-end', paddingRight: isWindows ? 140 : 8 }}>
-          <ThemeSwitch
-            checkedChildren={<i className="iconfont icon-theme icon-dark1" />}
-            unCheckedChildren={<i className="iconfont icon-theme icon-theme-light" />}
-            checked={theme === 'dark'}
-            onChange={toggleTheme}
-          />
-          <NewButton onClick={toggleRightSidebar}>
-            <i className={`iconfont ${rightSidebarShown ? 'icon-showsidebarhoriz' : 'icon-hidesidebarhoriz'}`} />
-          </NewButton>
-        </NavbarRight>
-      </Navbar>
+      <Navbar activeAssistant={activeAssistant} activeTopic={activeTopic} setActiveTopic={setActiveTopic} />
       <ContentContainer>
         {showAssistants && (
-          <Assistants
+          <RightSidebar
             activeAssistant={activeAssistant}
+            activeTopic={activeTopic}
             setActiveAssistant={setActiveAssistant}
-            onCreateAssistant={onCreateDefaultAssistant}
+            setActiveTopic={setActiveTopic}
+            position="left"
           />
         )}
-        <Chat assistant={activeAssistant} />
+        <Chat
+          assistant={activeAssistant}
+          activeTopic={activeTopic}
+          setActiveTopic={setActiveTopic}
+          setActiveAssistant={setActiveAssistant}
+        />
       </ContentContainer>
     </Container>
   )
@@ -88,42 +54,6 @@ const ContentContainer = styled.div`
   flex: 1;
   flex-direction: row;
   background-color: var(--color-background);
-`
-
-export const NewButton = styled.div`
-  -webkit-app-region: none;
-  border-radius: 4px;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.2s ease-in-out;
-  color: var(--color-icon);
-  .icon-a-addchat {
-    font-size: 20px;
-  }
-  .anticon {
-    font-size: 19px;
-  }
-  .icon-showsidebarhoriz,
-  .icon-hidesidebarhoriz {
-    font-size: 17px;
-  }
-  &:hover {
-    background-color: var(--color-background-soft);
-    cursor: pointer;
-    color: var(--color-icon-white);
-  }
-`
-
-const ThemeSwitch = styled(Switch)`
-  -webkit-app-region: none;
-  margin-right: 8px;
-  .icon-theme {
-    font-size: 14px;
-  }
 `
 
 export default HomePage

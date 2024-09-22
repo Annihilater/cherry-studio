@@ -6,6 +6,7 @@ import { uuid } from '@renderer/utils'
 import dayjs from 'dayjs'
 import { isEmpty } from 'lodash'
 
+import AiProvider from '../providers/AiProvider'
 import {
   getAssistantProvider,
   getDefaultModel,
@@ -14,8 +15,8 @@ import {
   getTranslateModel
 } from './assistant'
 import { EVENT_NAMES, EventEmitter } from './event'
-import { filterAtMessages } from './messages'
-import ProviderSDK from './ProviderSDK'
+import { filterMessages } from './messages'
+import { estimateMessagesUsage } from './tokens'
 
 export async function fetchChatCompletion({
   messages,
@@ -33,7 +34,7 @@ export async function fetchChatCompletion({
   const provider = getAssistantProvider(assistant)
   const defaultModel = getDefaultModel()
   const model = assistant.model || defaultModel
-  const providerSdk = new ProviderSDK(provider)
+  const AI = new AiProvider(provider)
 
   store.dispatch(setGenerating(true))
 
@@ -50,21 +51,57 @@ export async function fetchChatCompletion({
 
   onResponse({ ...message })
 
+  // Handle paused state
+  let paused = false
+  const timer = setInterval(() => {
+    if (window.keyv.get(EVENT_NAMES.CHAT_COMPLETION_PAUSED)) {
+      paused = true
+      message.status = 'paused'
+      EventEmitter.emit(EVENT_NAMES.RECEIVE_MESSAGE, message)
+      store.dispatch(setGenerating(false))
+      onResponse({ ...message, status: 'paused' })
+      clearInterval(timer)
+    }
+  }, 1000)
+
   try {
-    await providerSdk.completions(filterAtMessages(messages), assistant, ({ text, usage }) => {
-      message.content = message.content + text || ''
-      message.usage = usage
-      onResponse({ ...message, status: 'pending' })
+    let _messages: Message[] = []
+
+    await AI.completions({
+      messages,
+      assistant,
+      onFilterMessages: (messages) => (_messages = messages),
+      onChunk: ({ text, usage }) => {
+        message.content = message.content + text || ''
+        message.usage = usage
+        onResponse({ ...message, status: 'pending' })
+      }
     })
+
+    message.status = 'success'
+
+    if (!message.usage || !message?.usage?.completion_tokens) {
+      message.usage = await estimateMessagesUsage({
+        assistant,
+        messages: [..._messages, message]
+      })
+    }
   } catch (error: any) {
     message.content = `Error: ${error.message}`
+    message.status = 'error'
+  }
+
+  timer && clearInterval(timer)
+
+  if (paused) {
+    return message
   }
 
   // Update message status
-  message.status = window.keyv.get(EVENT_NAMES.CHAT_COMPLETION_PAUSED) ? 'paused' : 'success'
+  message.status = window.keyv.get(EVENT_NAMES.CHAT_COMPLETION_PAUSED) ? 'paused' : message.status
 
   // Emit chat completion event
-  EventEmitter.emit(EVENT_NAMES.AI_CHAT_COMPLETION, message)
+  EventEmitter.emit(EVENT_NAMES.RECEIVE_MESSAGE, message)
 
   // Reset generating state
   store.dispatch(setGenerating(false))
@@ -85,10 +122,10 @@ export async function fetchTranslate({ message, assistant }: { message: Message;
     return ''
   }
 
-  const providerSdk = new ProviderSDK(provider)
+  const AI = new AiProvider(provider)
 
   try {
-    return await providerSdk.translate(message, assistant)
+    return await AI.translate(message, assistant)
   } catch (error: any) {
     return ''
   }
@@ -102,12 +139,29 @@ export async function fetchMessagesSummary({ messages, assistant }: { messages: 
     return null
   }
 
-  const providerSdk = new ProviderSDK(provider)
+  const AI = new AiProvider(provider)
 
   try {
-    return await providerSdk.summaries(messages, assistant)
+    return await AI.summaries(filterMessages(messages), assistant)
   } catch (error: any) {
     return null
+  }
+}
+
+export async function fetchGenerate({ prompt, content }: { prompt: string; content: string }): Promise<string> {
+  const model = getDefaultModel()
+  const provider = getProviderByModel(model)
+
+  if (!hasApiKey(provider)) {
+    return ''
+  }
+
+  const AI = new AiProvider(provider)
+
+  try {
+    return await AI.generateText({ prompt, content })
+  } catch (error: any) {
+    return ''
   }
 }
 
@@ -118,10 +172,8 @@ export async function fetchSuggestions({
   messages: Message[]
   assistant: Assistant
 }): Promise<Suggestion[]> {
-  console.debug('fetchSuggestions', messages, assistant)
   const provider = getAssistantProvider(assistant)
-  const providerSdk = new ProviderSDK(provider)
-  console.debug('fetchSuggestions', provider)
+  const AI = new AiProvider(provider)
   const model = assistant.model
 
   if (!model) {
@@ -137,7 +189,7 @@ export async function fetchSuggestions({
   }
 
   try {
-    return await providerSdk.suggestions(messages, assistant)
+    return await AI.suggestions(filterMessages(messages), assistant)
   } catch (error: any) {
     return []
   }
@@ -148,9 +200,11 @@ export async function checkApi(provider: Provider) {
   const key = 'api-check'
   const style = { marginTop: '3vh' }
 
-  if (!provider.apiKey) {
-    window.message.error({ content: i18n.t('message.error.enter.api.key'), key, style })
-    return false
+  if (provider.id !== 'ollama') {
+    if (!provider.apiKey) {
+      window.message.error({ content: i18n.t('message.error.enter.api.key'), key, style })
+      return false
+    }
   }
 
   if (!provider.apiHost) {
@@ -163,9 +217,9 @@ export async function checkApi(provider: Provider) {
     return false
   }
 
-  const providerSdk = new ProviderSDK(provider)
+  const AI = new AiProvider(provider)
 
-  const { valid } = await providerSdk.check()
+  const { valid } = await AI.check()
 
   window.message[valid ? 'success' : 'error']({
     key: 'api-check',
@@ -184,10 +238,10 @@ function hasApiKey(provider: Provider) {
 }
 
 export async function fetchModels(provider: Provider) {
-  const providerSdk = new ProviderSDK(provider)
+  const AI = new AiProvider(provider)
 
   try {
-    return await providerSdk.models()
+    return await AI.models()
   } catch (error) {
     return []
   }

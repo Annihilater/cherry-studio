@@ -1,7 +1,10 @@
-import { getModelLogo } from '@renderer/config/provider'
+import ModelAvatar from '@renderer/components/Avatar/ModelAvatar'
+import VisionIcon from '@renderer/components/Icons/VisionIcon'
+import { isLocalAi } from '@renderer/config/env'
+import { isVisionModel } from '@renderer/config/models'
 import { useAssistant } from '@renderer/hooks/useAssistant'
 import { Assistant } from '@renderer/types'
-import { Avatar, Button } from 'antd'
+import { Button } from 'antd'
 import { upperFirst } from 'lodash'
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -17,11 +20,16 @@ const SelectModelButton: FC<Props> = ({ assistant }) => {
   const { model, setModel } = useAssistant(assistant.id)
   const { t } = useTranslation()
 
+  if (isLocalAi) {
+    return null
+  }
+
   return (
-    <SelectModelDropdown model={model} onSelect={setModel}>
+    <SelectModelDropdown model={model} onSelect={setModel} placement="top">
       <DropdownButton size="small" type="default">
-        <Avatar src={getModelLogo(model?.id || '')} style={{ width: 20, height: 20 }} />
+        <ModelAvatar model={model} size={20} />
         <ModelName>{model ? upperFirst(model.name) : t('button.select_model')}</ModelName>
+        {isVisionModel(model) && <VisionIcon style={{ marginLeft: 0 }} />}
       </DropdownButton>
     </SelectModelDropdown>
   )

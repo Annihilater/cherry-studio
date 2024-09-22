@@ -4,7 +4,13 @@ import { resolve } from 'path'
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
+    resolve: {
+      alias: {
+        '@types': resolve('src/renderer/src/types'),
+        '@main': resolve('src/main')
+      }
+    }
   },
   preload: {
     plugins: [externalizeDepsPlugin()]
@@ -15,7 +21,6 @@ export default defineConfig({
         '@renderer': resolve('src/renderer/src')
       }
     },
-    plugins: [react()],
-    assetsInclude: ['**/*.md']
+    plugins: [react()]
   }
 })

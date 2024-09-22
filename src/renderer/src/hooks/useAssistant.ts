@@ -16,7 +16,8 @@ import {
 } from '@renderer/store/assistants'
 import { setDefaultModel, setTopicNamingModel, setTranslateModel } from '@renderer/store/llm'
 import { Assistant, AssistantSettings, Model, Topic } from '@renderer/types'
-import localforage from 'localforage'
+
+import { TopicManager } from './useTopic'
 
 export function useAssistants() {
   const { assistants } = useAppSelector((state) => state.assistants)
@@ -29,9 +30,8 @@ export function useAssistants() {
     removeAssistant: (id: string) => {
       dispatch(removeAssistant({ id }))
       const assistant = assistants.find((a) => a.id === id)
-      if (assistant) {
-        assistant.topics.forEach((id) => localforage.removeItem(`topic:${id}`))
-      }
+      const topics = assistant?.topics || []
+      topics.forEach(({ id }) => TopicManager.removeTopic(id))
     }
   }
 }
@@ -45,7 +45,14 @@ export function useAssistant(id: string) {
     assistant,
     model: assistant?.model ?? defaultModel,
     addTopic: (topic: Topic) => dispatch(addTopic({ assistantId: assistant.id, topic })),
-    removeTopic: (topic: Topic) => dispatch(removeTopic({ assistantId: assistant.id, topic })),
+    removeTopic: (topic: Topic) => {
+      TopicManager.removeTopic(topic.id)
+      dispatch(removeTopic({ assistantId: assistant.id, topic }))
+    },
+    moveTopic: (topic: Topic, toAssistant: Assistant) => {
+      dispatch(addTopic({ assistantId: toAssistant.id, topic: { ...topic } }))
+      dispatch(removeTopic({ assistantId: assistant.id, topic }))
+    },
     updateTopic: (topic: Topic) => dispatch(updateTopic({ assistantId: assistant.id, topic })),
     updateTopics: (topics: Topic[]) => dispatch(updateTopics({ assistantId: assistant.id, topics })),
     removeAllTopics: () => dispatch(removeAllTopics({ assistantId: assistant.id })),

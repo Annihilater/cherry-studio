@@ -3,12 +3,15 @@ productName: Cherry Studio
 directories:
   buildResources: build
 files:
-  - '!**/.vscode/*'
-  - '!src/*'
+  - '!{.vscode,.yarn,.github}'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!src'
+  - '!local'
+  - '!scripts'
+  - '!resources'
 asarUnpack:
   - resources/**
 win:
@@ -39,9 +42,12 @@ dmg:
   artifactName: ${productName}-${version}-${arch}.${ext}
 linux:
   target:
-    - AppImage
-    - snap
-    - deb
+    - target: AppImage
+      arch:
+        - arm64
+        - x64
+    # - snap
+    # - deb
   maintainer: electronjs.org
   category: Utility
 appImage:
@@ -56,5 +62,14 @@ electronDownload:
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    支持保存自定义智能体
-    修复话题重命名的问题
+    本次更新：
+      支持话题导出为图片
+      启动界面增加LOGO显示避免空白
+      修复输入框光标位置粘贴文字问题
+      修复暂停生成导致消息显示错乱问题
+      修复公式渲染异常情况
+      修复 Anthropic API 地址错误问题
+    近期更新：
+      增加了30多种文本文档格式选择
+      支持粘贴图片和文件到聊天输入框
+      支持将对话移动到其他智能体了

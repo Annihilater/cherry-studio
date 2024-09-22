@@ -1,4 +1,6 @@
+import { CloudOutlined, InfoCircleOutlined, MessageOutlined, SettingOutlined } from '@ant-design/icons'
 import { Navbar, NavbarCenter } from '@renderer/components/app/Navbar'
+import { isLocalAi } from '@renderer/config/env'
 import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Route, Routes, useLocation } from 'react-router-dom'
@@ -8,7 +10,7 @@ import AboutSettings from './AboutSettings'
 import AssistantSettings from './AssistantSettings'
 import GeneralSettings from './GeneralSettings'
 import ModelSettings from './ModelSettings'
-import ProviderSettings from './ProviderSettings'
+import ProvidersList from './ProviderSettings'
 
 const SettingsPage: FC = () => {
   const { pathname } = useLocation()
@@ -23,25 +25,44 @@ const SettingsPage: FC = () => {
       </Navbar>
       <ContentContainer>
         <SettingMenus>
-          <MenuItemLink to="/settings/provider">
-            <MenuItem className={isRoute('/settings/provider')}>{t('settings.provider')}</MenuItem>
-          </MenuItemLink>
-          <MenuItemLink to="/settings/model">
-            <MenuItem className={isRoute('/settings/model')}>{t('settings.model')}</MenuItem>
-          </MenuItemLink>
+          {!isLocalAi && (
+            <>
+              <MenuItemLink to="/settings/provider">
+                <MenuItem className={isRoute('/settings/provider')}>
+                  <CloudOutlined />
+                  {t('settings.provider')}
+                </MenuItem>
+              </MenuItemLink>
+              <MenuItemLink to="/settings/model">
+                <MenuItem className={isRoute('/settings/model')}>
+                  <i className="iconfont icon-ai-model" />
+                  {t('settings.model')}
+                </MenuItem>
+              </MenuItemLink>
+            </>
+          )}
           <MenuItemLink to="/settings/assistant">
-            <MenuItem className={isRoute('/settings/assistant')}>{t('settings.assistant')}</MenuItem>
+            <MenuItem className={isRoute('/settings/assistant')}>
+              <MessageOutlined />
+              {t('settings.assistant')}
+            </MenuItem>
           </MenuItemLink>
           <MenuItemLink to="/settings/general">
-            <MenuItem className={isRoute('/settings/general')}>{t('settings.general')}</MenuItem>
+            <MenuItem className={isRoute('/settings/general')}>
+              <SettingOutlined />
+              {t('settings.general')}
+            </MenuItem>
           </MenuItemLink>
           <MenuItemLink to="/settings/about">
-            <MenuItem className={isRoute('/settings/about')}>{t('settings.about')}</MenuItem>
+            <MenuItem className={isRoute('/settings/about')}>
+              <InfoCircleOutlined />
+              {t('settings.about')}
+            </MenuItem>
           </MenuItemLink>
         </SettingMenus>
         <SettingContent>
           <Routes>
-            <Route path="provider" element={<ProviderSettings />} />
+            <Route path="provider" element={<ProvidersList />} />
             <Route path="model" element={<ModelSettings />} />
             <Route path="assistant" element={<AssistantSettings />} />
             <Route path="general" element={<GeneralSettings />} />
@@ -69,7 +90,7 @@ const ContentContainer = styled.div`
 const SettingMenus = styled.ul`
   display: flex;
   flex-direction: column;
-  min-width: var(--assistants-width);
+  min-width: var(--settings-width);
   border-right: 0.5px solid var(--color-border);
   padding: 10px;
 `
@@ -81,19 +102,31 @@ const MenuItemLink = styled(Link)`
 `
 
 const MenuItem = styled.li`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   padding: 6px 10px;
   width: 100%;
   cursor: pointer;
   border-radius: 5px;
-  font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease-in-out;
+  .anticon {
+    font-size: 16px;
+    opacity: 0.8;
+  }
+  .iconfont {
+    font-size: 18px;
+    line-height: 18px;
+    opacity: 0.7;
+    margin-left: -1px;
+  }
   &:hover {
-    background: var(--color-primary-soft);
+    background: var(--color-background-soft);
   }
   &.active {
-    background: var(--color-primary);
-    color: var(--color-white);
+    background: var(--color-background-mute);
   }
 `
 

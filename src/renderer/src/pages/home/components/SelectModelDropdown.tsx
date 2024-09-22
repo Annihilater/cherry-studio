@@ -1,14 +1,17 @@
+import VisionIcon from '@renderer/components/Icons/VisionIcon'
+import { isVisionModel } from '@renderer/config/models'
 import { getModelLogo } from '@renderer/config/provider'
 import { useProviders } from '@renderer/hooks/useProvider'
+import { getModelUniqId } from '@renderer/services/model'
 import { Model } from '@renderer/types'
 import { Avatar, Dropdown, DropdownProps, MenuProps } from 'antd'
-import { first, upperFirst } from 'lodash'
+import { first, reverse, sortBy, upperFirst } from 'lodash'
 import { FC, PropsWithChildren } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
 interface Props extends DropdownProps {
-  model: Model
+  model?: Model
   onSelect: (model: Model) => void
 }
 
@@ -22,10 +25,13 @@ const SelectModelDropdown: FC<Props & PropsWithChildren> = ({ children, model, o
       key: p.id,
       label: p.isSystem ? t(`provider.${p.id}`) : p.name,
       type: 'group',
-      children: p.models.map((m) => ({
-        key: m?.id,
-        label: upperFirst(m?.name),
-        style: m?.id === model?.id ? { color: 'var(--color-primary)' } : undefined,
+      children: reverse(sortBy(p.models, 'name')).map((m) => ({
+        key: getModelUniqId(m),
+        label: (
+          <div>
+            {upperFirst(m?.name)} {isVisionModel(m) && <VisionIcon />}
+          </div>
+        ),
         icon: (
           <Avatar src={getModelLogo(m?.id || '')} size={24}>
             {first(m?.name)}
@@ -37,7 +43,11 @@ const SelectModelDropdown: FC<Props & PropsWithChildren> = ({ children, model, o
 
   return (
     <DropdownMenu
-      menu={{ items, style: { maxHeight: '80vh', overflow: 'auto' } }}
+      menu={{
+        items,
+        style: { maxHeight: '55vh', overflow: 'auto' },
+        selectedKeys: model ? [getModelUniqId(model)] : []
+      }}
       trigger={['click']}
       arrow
       placement="bottom"

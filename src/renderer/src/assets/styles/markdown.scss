@@ -1,8 +1,8 @@
 .markdown {
   color: var(--color-text);
-  font-size: 15px;
   line-height: 1.6;
   user-select: text;
+  word-break: break-word;
 
   h1:first-child,
   h2:first-child,
@@ -72,6 +72,12 @@
 
   li {
     margin-bottom: 0.5em;
+    pre {
+      margin: 1.5em 0;
+    }
+    &::marker {
+      color: var(--color-text-3);
+    }
   }
 
   li > ul,
@@ -91,30 +97,41 @@
   }
 
   code {
-    white-space: pre-wrap;
+    white-space: pre-wrap !important;
     font-family: 'Courier New', Courier, monospace;
   }
 
-  p code {
+  p code,
+  li code {
     background: var(--color-background-mute);
     padding: 3px 5px;
     border-radius: 5px;
   }
 
   pre {
-    white-space: pre-wrap;
-    padding: 1em;
+    white-space: pre-wrap !important;
     border-radius: 5px;
     overflow-x: auto;
     font-family: 'Fira Code', 'Courier New', Courier, monospace;
+    background-color: var(--color-background-mute);
+    &:not(pre pre) {
+      > code:not(pre pre > code) {
+        padding: 15px;
+        display: block;
+      }
+    }
     pre {
       margin: 0 !important;
+      code {
+        background: none;
+        padding: 0;
+        border-radius: 0;
+      }
     }
-    code {
-      background: none;
-      padding: 0;
-      border-radius: 0;
-    }
+  }
+
+  pre + pre {
+    margin-top: 10px;
   }
 
   blockquote {

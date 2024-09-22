@@ -1,22 +1,32 @@
-import useAvatar from '@renderer/hooks/useAvatar'
+import { FolderOpenOutlined, SaveOutlined } from '@ant-design/icons'
+import { HStack } from '@renderer/components/Layout'
+import { isMac } from '@renderer/config/constant'
 import { useSettings } from '@renderer/hooks/useSettings'
 import i18n from '@renderer/i18n'
-import LocalStorage from '@renderer/services/storage'
+import { backup, reset, restore } from '@renderer/services/backup'
 import { useAppDispatch } from '@renderer/store'
-import { setAvatar } from '@renderer/store/runtime'
-import { setLanguage, setUserName, ThemeMode } from '@renderer/store/settings'
+import { setClickAssistantToShowTopic, setLanguage } from '@renderer/store/settings'
 import { setProxyUrl as _setProxyUrl } from '@renderer/store/settings'
-import { compressImage, isValidProxyUrl } from '@renderer/utils'
-import { Avatar, Input, Select, Upload } from 'antd'
+import { ThemeMode } from '@renderer/types'
+import { isValidProxyUrl } from '@renderer/utils'
+import { Button, Input, Select, Switch } from 'antd'
 import { FC, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import styled from 'styled-components'
 
-import { SettingContainer, SettingDivider, SettingRow, SettingRowTitle, SettingTitle } from './components'
+import { SettingContainer, SettingDivider, SettingRow, SettingRowTitle, SettingTitle } from '.'
 
 const GeneralSettings: FC = () => {
-  const avatar = useAvatar()
-  const { language, proxyUrl: storeProxyUrl, userName, theme, setTheme } = useSettings()
+  const {
+    language,
+    proxyUrl: storeProxyUrl,
+    theme,
+    windowStyle,
+    topicPosition,
+    clickAssistantToShowTopic,
+    setTheme,
+    setWindowStyle,
+    setTopicPosition
+  } = useSettings()
   const [proxyUrl, setProxyUrl] = useState<string | undefined>(storeProxyUrl)
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
@@ -45,7 +55,7 @@ const GeneralSettings: FC = () => {
         <SettingRowTitle>{t('common.language')}</SettingRowTitle>
         <Select
           defaultValue={language || 'en-US'}
-          style={{ width: 120 }}
+          style={{ width: 180 }}
           onChange={onSelectLanguage}
           options={[
             { value: 'zh-CN', label: '中文' },
@@ -58,7 +68,7 @@ const GeneralSettings: FC = () => {
         <SettingRowTitle>{t('settings.theme.title')}</SettingRowTitle>
         <Select
           defaultValue={theme}
-          style={{ width: 120 }}
+          style={{ width: 180 }}
           onChange={setTheme}
           options={[
             { value: ThemeMode.light, label: t('settings.theme.light') },
@@ -67,57 +77,84 @@ const GeneralSettings: FC = () => {
           ]}
         />
       </SettingRow>
+      {isMac && (
+        <>
+          <SettingDivider />
+          <SettingRow>
+            <SettingRowTitle>{t('settings.theme.window.style.title')}</SettingRowTitle>
+            <Select
+              defaultValue={windowStyle || 'opaque'}
+              style={{ width: 180 }}
+              onChange={setWindowStyle}
+              options={[
+                { value: 'transparent', label: t('settings.theme.window.style.transparent') },
+                { value: 'opaque', label: t('settings.theme.window.style.opaque') }
+              ]}
+            />
+          </SettingRow>
+        </>
+      )}
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('common.avatar')}</SettingRowTitle>
-        <Upload
-          customRequest={() => {}}
-          accept="image/png, image/jpeg"
-          itemRender={() => null}
-          maxCount={1}
-          onChange={async ({ file }) => {
-            try {
-              const _file = file.originFileObj as File
-              const compressedFile = await compressImage(_file)
-              await LocalStorage.storeImage('avatar', compressedFile)
-              dispatch(setAvatar(await LocalStorage.getImage('avatar')))
-            } catch (error: any) {
-              window.message.error(error.message)
-            }
-          }}>
-          <UserAvatar src={avatar} size="large" />
-        </Upload>
-      </SettingRow>
-      <SettingDivider />
-      <SettingRow>
-        <SettingRowTitle>{t('settings.general.user_name')}</SettingRowTitle>
-        <Input
-          placeholder={t('settings.general.user_name.placeholder')}
-          value={userName}
-          onChange={(e) => dispatch(setUserName(e.target.value))}
-          style={{ width: 150 }}
-          maxLength={30}
+        <SettingRowTitle>{t('settings.topic.position')}</SettingRowTitle>
+        <Select
+          defaultValue={topicPosition || 'right'}
+          style={{ width: 180 }}
+          onChange={setTopicPosition}
+          options={[
+            { value: 'left', label: t('settings.topic.position.left') },
+            { value: 'right', label: t('settings.topic.position.right') }
+          ]}
         />
       </SettingRow>
       <SettingDivider />
+      {topicPosition === 'left' && (
+        <>
+          <SettingRow style={{ minHeight: 32 }}>
+            <SettingRowTitle>{t('settings.advanced.click_assistant_switch_to_topics')}</SettingRowTitle>
+            <Switch
+              checked={clickAssistantToShowTopic}
+              onChange={(checked) => dispatch(setClickAssistantToShowTopic(checked))}
+            />
+          </SettingRow>
+          <SettingDivider />
+        </>
+      )}
       <SettingRow>
         <SettingRowTitle>{t('settings.proxy.title')}</SettingRowTitle>
         <Input
           placeholder="socks5://127.0.0.1:6153"
           value={proxyUrl}
           onChange={(e) => setProxyUrl(e.target.value)}
-          style={{ width: 300 }}
+          style={{ width: 180 }}
           onBlur={() => onSetProxyUrl()}
           type="url"
         />
       </SettingRow>
       <SettingDivider />
+      <SettingRow>
+        <SettingRowTitle>{t('settings.general.backup.title')}</SettingRowTitle>
+        <HStack gap="5px" justifyContent="space-between">
+          <Button onClick={backup} icon={<SaveOutlined />}>
+            {t('settings.general.backup.button')}
+          </Button>
+          <Button onClick={restore} icon={<FolderOpenOutlined />}>
+            {t('settings.general.restore.button')}
+          </Button>
+        </HStack>
+      </SettingRow>
+      <SettingDivider />
+      <SettingRow>
+        <SettingRowTitle>{t('settings.general.reset.title')}</SettingRowTitle>
+        <HStack gap="5px">
+          <Button onClick={reset} danger>
+            {t('settings.general.reset.button')}
+          </Button>
+        </HStack>
+      </SettingRow>
+      <SettingDivider />
     </SettingContainer>
   )
 }
-
-const UserAvatar = styled(Avatar)`
-  cursor: pointer;
-`
 
 export default GeneralSettings

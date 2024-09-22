@@ -1,406 +1,81 @@
 import { Model } from '@renderer/types'
 
-type SystemModel = Model & { enabled: boolean }
+const TEXT_TO_IMAGE_REGEX = /flux|diffusion|stabilityai|sd-turbo|dall|cogview/i
+const VISION_REGEX = /llava|moondream|minicpm|gemini-1.5|claude-3|vision|glm-4v|gpt-4|qwen-vl/i
+const EMBEDDING_REGEX = /embedding/i
 
-export const SYSTEM_MODELS: Record<string, SystemModel[]> = {
-  openai: [
-    {
-      id: 'gpt-4o',
-      provider: 'openai',
-      name: ' GPT-4o',
-      group: 'GPT 4o',
-      enabled: true
-    },
-    {
-      id: 'gpt-4o-mini',
-      provider: 'openai',
-      name: ' GPT-4o-mini',
-      group: 'GPT 4o',
-      enabled: true
-    },
-    {
-      id: 'gpt-4-turbo',
-      provider: 'openai',
-      name: ' GPT-4 Turbo',
-      group: 'GPT 4',
-      enabled: true
-    },
-    {
-      id: 'gpt-4',
-      provider: 'openai',
-      name: ' GPT-4',
-      group: 'GPT 4',
-      enabled: true
-    }
-  ],
+export const SYSTEM_MODELS: Record<string, Model[]> = {
+  ollama: [],
   silicon: [
     {
       id: 'Qwen/Qwen2-7B-Instruct',
       provider: 'silicon',
       name: 'Qwen2-7B-Instruct',
-      group: 'Qwen2',
-      enabled: true
-    },
-    {
-      id: 'Qwen/Qwen2-1.5B-Instruct',
-      provider: 'silicon',
-      name: 'Qwen2-1.5B-Instruct',
-      group: 'Qwen2',
-      enabled: false
-    },
-    {
-      id: 'Qwen/Qwen1.5-7B-Chat',
-      provider: 'silicon',
-      name: 'Qwen1.5-7B-Chat',
-      group: 'Qwen1.5',
-      enabled: false
+      group: 'Qwen2'
     },
     {
       id: 'Qwen/Qwen2-72B-Instruct',
       provider: 'silicon',
       name: 'Qwen2-72B-Instruct',
-      group: 'Qwen2',
-      enabled: true
-    },
-    {
-      id: 'Qwen/Qwen2-57B-A14B-Instruct',
-      provider: 'silicon',
-      name: 'Qwen2-57B-A14B-Instruct',
-      group: 'Qwen2',
-      enabled: false
-    },
-    {
-      id: 'Qwen/Qwen1.5-110B-Chat',
-      provider: 'silicon',
-      name: 'Qwen1.5-110B-Chat',
-      group: 'Qwen1.5',
-      enabled: false
-    },
-    {
-      id: 'Qwen/Qwen1.5-32B-Chat',
-      provider: 'silicon',
-      name: 'Qwen1.5-32B-Chat',
-      group: 'Qwen1.5',
-      enabled: false
-    },
-    {
-      id: 'Qwen/Qwen1.5-14B-Chat',
-      provider: 'silicon',
-      name: 'Qwen1.5-14B-Chat',
-      group: 'Qwen1.5',
-      enabled: false
-    },
-    {
-      id: 'deepseek-ai/DeepSeek-V2-Chat',
-      provider: 'silicon',
-      name: 'DeepSeek-V2-Chat',
-      group: 'DeepSeek',
-      enabled: false
-    },
-    {
-      id: 'deepseek-ai/DeepSeek-Coder-V2-Instruct',
-      provider: 'silicon',
-      name: 'DeepSeek-Coder-V2-Instruct',
-      group: 'DeepSeek',
-      enabled: false
-    },
-    {
-      id: 'deepseek-ai/deepseek-llm-67b-chat',
-      provider: 'silicon',
-      name: 'Deepseek-LLM-67B-Chat',
-      group: 'DeepSeek',
-      enabled: false
+      group: 'Qwen2'
     },
     {
       id: 'THUDM/glm-4-9b-chat',
       provider: 'silicon',
       name: 'GLM-4-9B-Chat',
-      group: 'GLM',
-      enabled: true
+      group: 'GLM'
     },
     {
-      id: 'THUDM/chatglm3-6b',
+      id: 'deepseek-ai/DeepSeek-V2-Chat',
       provider: 'silicon',
-      name: 'GhatGLM3-6B',
-      group: 'GLM',
-      enabled: false
+      name: 'DeepSeek-V2-Chat',
+      group: 'DeepSeek'
     },
     {
-      id: '01-ai/Yi-1.5-9B-Chat-16K',
+      id: 'deepseek-ai/DeepSeek-Coder-V2-Instruct',
       provider: 'silicon',
-      name: 'Yi-1.5-9B-Chat-16K',
-      group: 'Yi',
-      enabled: false
-    },
-    {
-      id: '01-ai/Yi-1.5-6B-Chat',
-      provider: 'silicon',
-      name: 'Yi-1.5-6B-Chat',
-      group: 'Yi',
-      enabled: false
-    },
-    {
-      id: '01-ai/Yi-1.5-34B-Chat-16K',
-      provider: 'silicon',
-      name: 'Yi-1.5-34B-Chat-16K',
-      group: 'Yi',
-      enabled: false
+      name: 'DeepSeek-Coder-V2-Instruct',
+      group: 'DeepSeek'
     }
   ],
-  deepseek: [
+  openai: [
     {
-      id: 'deepseek-chat',
-      provider: 'deepseek',
-      name: 'DeepSeek Chat',
-      group: 'DeepSeek Chat',
-      enabled: true
+      id: 'gpt-4o',
+      provider: 'openai',
+      name: ' GPT-4o',
+      group: 'GPT 4o'
     },
-    {
-      id: 'deepseek-coder',
-      provider: 'deepseek',
-      name: 'DeepSeek Coder',
-      group: 'DeepSeek Coder',
-      enabled: true
-    }
-  ],
-  yi: [
-    {
-      id: 'yi-large',
-      provider: 'yi',
-      name: 'Yi-Large',
-      group: 'Yi',
-      enabled: false
-    },
-    {
-      id: 'yi-large-turbo',
-      provider: 'yi',
-      name: 'Yi-Large-Turbo',
-      group: 'Yi',
-      enabled: true
-    },
-    {
-      id: 'yi-large-rag',
-      provider: 'yi',
-      name: 'Yi-Large-Rag',
-      group: 'Yi',
-      enabled: false
-    },
-    {
-      id: 'yi-medium',
-      provider: 'yi',
-      name: 'Yi-Medium',
-      group: 'Yi',
-      enabled: true
-    },
-    {
-      id: 'yi-medium-200k',
-      provider: 'yi',
-      name: 'Yi-Medium-200k',
-      group: 'Yi',
-      enabled: false
-    },
-    {
-      id: 'yi-spark',
-      provider: 'yi',
-      name: 'Yi-Spark',
-      group: 'Yi',
-      enabled: false
-    }
-  ],
-  zhipu: [
-    {
-      id: 'glm-4-0520',
-      provider: 'zhipu',
-      name: 'GLM-4-0520',
-      group: 'GLM',
-      enabled: true
-    },
-    {
-      id: 'glm-4',
-      provider: 'zhipu',
-      name: 'GLM-4',
-      group: 'GLM',
-      enabled: false
-    },
-    {
-      id: 'glm-4-airx',
-      provider: 'zhipu',
-      name: 'GLM-4-AirX',
-      group: 'GLM',
-      enabled: false
-    },
-    {
-      id: 'glm-4-air',
-      provider: 'zhipu',
-      name: 'GLM-4-Air',
-      group: 'GLM',
-      enabled: true
-    },
-    {
-      id: 'glm-4v',
-      provider: 'zhipu',
-      name: 'GLM-4V',
-      group: 'GLM',
-      enabled: false
-    },
-    {
-      id: 'glm-4-alltools',
-      provider: 'zhipu',
-      name: 'GLM-4-AllTools',
-      group: 'GLM',
-      enabled: false
-    }
-  ],
-  moonshot: [
-    {
-      id: 'moonshot-v1-8k',
-      provider: 'moonshot',
-      name: 'Moonshot V1 8k',
-      group: 'Moonshot V1',
-      enabled: true
-    },
-    {
-      id: 'moonshot-v1-32k',
-      provider: 'moonshot',
-      name: 'Moonshot V1 32k',
-      group: 'Moonshot V1',
-      enabled: true
-    },
-    {
-      id: 'moonshot-v1-128k',
-      provider: 'moonshot',
-      name: 'Moonshot V1 128k',
-      group: 'Moonshot V1',
-      enabled: true
-    }
-  ],
-  baichuan: [
-    {
-      id: 'Baichuan4',
-      provider: 'baichuan',
-      name: 'Baichuan4',
-      group: 'Baichuan4',
-      enabled: true
-    },
-    {
-      id: 'Baichuan3-Turbo',
-      provider: 'baichuan',
-      name: 'Baichuan3 Turbo',
-      group: 'Baichuan3',
-      enabled: true
-    },
-    {
-      id: 'Baichuan3-Turbo-128k',
-      provider: 'baichuan',
-      name: 'Baichuan3 Turbo 128k',
-      group: 'Baichuan3',
-      enabled: true
-    }
-  ],
-  dashscope: [
-    {
-      id: 'qwen-turbo',
-      provider: 'dashscope',
-      name: 'Qwen Turbo',
-      group: 'Qwen',
-      enabled: true
-    },
-    {
-      id: 'qwen-plus',
-      provider: 'dashscope',
-      name: 'Qwen Plus',
-      group: 'Qwen',
-      enabled: true
-    },
-    {
-      id: 'qwen-max',
-      provider: 'dashscope',
-      name: 'Qwen Max',
-      group: 'Qwen',
-      enabled: true
-    }
-  ],
-  aihubmix: [
     {
       id: 'gpt-4o-mini',
-      provider: 'aihubmix',
-      name: 'GPT-4o Mini',
-      group: 'GPT-4o',
-      enabled: true
+      provider: 'openai',
+      name: ' GPT-4o-mini',
+      group: 'GPT 4o'
     },
     {
-      id: 'aihubmix-Llama-3-70B-Instruct',
-      provider: 'aihubmix',
-      name: 'Llama 3 70B Instruct',
-      group: 'Llama3',
-      enabled: true
+      id: 'gpt-4-turbo',
+      provider: 'openai',
+      name: ' GPT-4 Turbo',
+      group: 'GPT 4'
+    },
+    {
+      id: 'gpt-4',
+      provider: 'openai',
+      name: ' GPT-4',
+      group: 'GPT 4'
     }
   ],
-  openrouter: [
+  gemini: [
     {
-      id: 'google/gemma-2-9b-it:free',
-      provider: 'openrouter',
-      name: 'Google: Gemma 2 9B',
-      group: 'Gemma',
-      enabled: true
+      id: 'gemini-1.5-flash',
+      provider: 'gemini',
+      name: 'Gemini 1.5 Flash',
+      group: 'Gemini 1.5'
     },
     {
-      id: 'microsoft/phi-3-mini-128k-instruct:free',
-      provider: 'openrouter',
-      name: 'Phi-3 Mini 128K Instruct',
-      group: 'Phi',
-      enabled: true
-    },
-    {
-      id: 'microsoft/phi-3-medium-128k-instruct:free',
-      provider: 'openrouter',
-      name: 'Phi-3 Medium 128K Instruct',
-      group: 'Phi',
-      enabled: true
-    },
-    {
-      id: 'meta-llama/llama-3-8b-instruct:free',
-      provider: 'openrouter',
-      name: 'Meta: Llama 3 8B Instruct',
-      group: 'Llama3',
-      enabled: true
-    },
-    {
-      id: 'mistralai/mistral-7b-instruct:free',
-      provider: 'openrouter',
-      name: 'Mistral: Mistral 7B Instruct',
-      group: 'Mistral',
-      enabled: true
-    }
-  ],
-  groq: [
-    {
-      id: 'llama3-8b-8192',
-      provider: 'groq',
-      name: 'LLaMA3 8B',
-      group: 'Llama3',
-      enabled: false
-    },
-    {
-      id: 'llama3-70b-8192',
-      provider: 'groq',
-      name: 'LLaMA3 70B',
-      group: 'Llama3',
-      enabled: true
-    },
-    {
-      id: 'mixtral-8x7b-32768',
-      provider: 'groq',
-      name: 'Mixtral 8x7B',
-      group: 'Mixtral',
-      enabled: false
-    },
-    {
-      id: 'gemma-7b-it',
-      provider: 'groq',
-      name: 'Gemma 7B',
-      group: 'Gemma',
-      enabled: false
+      id: 'gemini-1.5-pro-exp-0801',
+      provider: 'gemini',
+      name: 'Gemini 1.5 Pro Experimental 0801',
+      group: 'Gemini 1.5'
     }
   ],
   anthropic: [
@@ -408,29 +83,320 @@ export const SYSTEM_MODELS: Record<string, SystemModel[]> = {
       id: 'claude-3-5-sonnet-20240620',
       provider: 'anthropic',
       name: 'Claude 3.5 Sonnet',
-      group: 'Claude 3.5',
-      enabled: true
+      group: 'Claude 3.5'
     },
     {
       id: 'claude-3-opus-20240229',
       provider: 'anthropic',
       name: 'Claude 3 Opus',
-      group: 'Claude 3',
-      enabled: true
+      group: 'Claude 3'
     },
     {
       id: 'claude-3-sonnet-20240229',
       provider: 'anthropic',
       name: 'Claude 3 Sonnet',
-      group: 'Claude 3',
-      enabled: true
+      group: 'Claude 3'
     },
     {
       id: 'claude-3-haiku-20240307',
       provider: 'anthropic',
       name: 'Claude 3 Haiku',
-      group: 'Claude 3',
-      enabled: true
+      group: 'Claude 3'
+    }
+  ],
+  deepseek: [
+    {
+      id: 'deepseek-chat',
+      provider: 'deepseek',
+      name: 'DeepSeek Chat',
+      group: 'DeepSeek Chat'
+    },
+    {
+      id: 'deepseek-coder',
+      provider: 'deepseek',
+      name: 'DeepSeek Coder',
+      group: 'DeepSeek Coder'
+    }
+  ],
+  github: [
+    {
+      id: 'gpt-4o',
+      provider: 'github',
+      name: 'OpenAI GPT-4o',
+      group: 'OpenAI'
+    }
+  ],
+  yi: [
+    {
+      id: 'yi-large',
+      provider: 'yi',
+      name: 'Yi-Large',
+      group: 'Yi'
+    },
+    {
+      id: 'yi-large-turbo',
+      provider: 'yi',
+      name: 'Yi-Large-Turbo',
+      group: 'Yi'
+    },
+    {
+      id: 'yi-large-rag',
+      provider: 'yi',
+      name: 'Yi-Large-Rag',
+      group: 'Yi'
+    },
+    {
+      id: 'yi-medium',
+      provider: 'yi',
+      name: 'Yi-Medium',
+      group: 'Yi'
+    },
+    {
+      id: 'yi-medium-200k',
+      provider: 'yi',
+      name: 'Yi-Medium-200k',
+      group: 'Yi'
+    },
+    {
+      id: 'yi-spark',
+      provider: 'yi',
+      name: 'Yi-Spark',
+      group: 'Yi'
+    }
+  ],
+  zhipu: [
+    {
+      id: 'glm-4',
+      provider: 'zhipu',
+      name: 'GLM-4',
+      group: 'GLM-4'
+    },
+    {
+      id: 'glm-4-plus',
+      provider: 'zhipu',
+      name: 'GLM-4-Plus',
+      group: 'GLM-4'
+    },
+    {
+      id: 'glm-4-air',
+      provider: 'zhipu',
+      name: 'GLM-4-Air',
+      group: 'GLM-4'
+    },
+    {
+      id: 'glm-4-airx',
+      provider: 'zhipu',
+      name: 'GLM-4-AirX',
+      group: 'GLM-4'
+    },
+    {
+      id: 'glm-4-flash',
+      provider: 'zhipu',
+      name: 'GLM-4-Flash',
+      group: 'GLM-4'
+    },
+    {
+      id: 'glm-4v',
+      provider: 'zhipu',
+      name: 'GLM 4V',
+      group: 'GLM-4v'
+    },
+    {
+      id: 'glm-4v-plus',
+      provider: 'zhipu',
+      name: 'GLM-4V-Plus',
+      group: 'GLM-4v'
+    },
+    {
+      id: 'glm-4-alltools',
+      provider: 'zhipu',
+      name: 'GLM-4-AllTools',
+      group: 'GLM-4-AllTools'
+    }
+  ],
+  moonshot: [
+    {
+      id: 'moonshot-v1-8k',
+      provider: 'moonshot',
+      name: 'Moonshot V1 8k',
+      group: 'Moonshot V1'
+    },
+    {
+      id: 'moonshot-v1-32k',
+      provider: 'moonshot',
+      name: 'Moonshot V1 32k',
+      group: 'Moonshot V1'
+    },
+    {
+      id: 'moonshot-v1-128k',
+      provider: 'moonshot',
+      name: 'Moonshot V1 128k',
+      group: 'Moonshot V1'
+    }
+  ],
+  baichuan: [
+    {
+      id: 'Baichuan4',
+      provider: 'baichuan',
+      name: 'Baichuan4',
+      group: 'Baichuan4'
+    },
+    {
+      id: 'Baichuan3-Turbo',
+      provider: 'baichuan',
+      name: 'Baichuan3 Turbo',
+      group: 'Baichuan3'
+    },
+    {
+      id: 'Baichuan3-Turbo-128k',
+      provider: 'baichuan',
+      name: 'Baichuan3 Turbo 128k',
+      group: 'Baichuan3'
+    }
+  ],
+  dashscope: [
+    {
+      id: 'qwen-turbo',
+      provider: 'dashscope',
+      name: 'Qwen Turbo',
+      group: 'Qwen'
+    },
+    {
+      id: 'qwen-plus',
+      provider: 'dashscope',
+      name: 'Qwen Plus',
+      group: 'Qwen'
+    },
+    {
+      id: 'qwen-max',
+      provider: 'dashscope',
+      name: 'Qwen Max',
+      group: 'Qwen'
+    }
+  ],
+  stepfun: [
+    {
+      id: 'step-1-8k',
+      provider: 'stepfun',
+      name: 'Step 1 8K',
+      group: 'Step 1'
+    },
+    {
+      id: 'step-1-flash',
+      provider: 'stepfun',
+      name: 'Step 1 Flash',
+      group: 'Step 1'
+    }
+  ],
+  doubao: [],
+  minimax: [
+    {
+      id: 'abab6.5s-chat',
+      provider: 'minimax',
+      name: 'abab6.5s',
+      group: 'abab6'
+    },
+    {
+      id: 'abab6.5g-chat',
+      provider: 'minimax',
+      name: 'abab6.5g',
+      group: 'abab6'
+    },
+    {
+      id: 'abab6.5t-chat',
+      provider: 'minimax',
+      name: 'abab6.5t',
+      group: 'abab6'
+    },
+    {
+      id: 'abab5.5s-chat',
+      provider: 'minimax',
+      name: 'abab5.5s',
+      group: 'abab5'
+    }
+  ],
+  aihubmix: [
+    {
+      id: 'gpt-4o-mini',
+      provider: 'aihubmix',
+      name: 'GPT-4o Mini',
+      group: 'GPT-4o'
+    },
+    {
+      id: 'aihubmix-Llama-3-70B-Instruct',
+      provider: 'aihubmix',
+      name: 'Llama 3 70B Instruct',
+      group: 'Llama3'
+    }
+  ],
+  openrouter: [
+    {
+      id: 'google/gemma-2-9b-it:free',
+      provider: 'openrouter',
+      name: 'Google: Gemma 2 9B',
+      group: 'Gemma'
+    },
+    {
+      id: 'microsoft/phi-3-mini-128k-instruct:free',
+      provider: 'openrouter',
+      name: 'Phi-3 Mini 128K Instruct',
+      group: 'Phi'
+    },
+    {
+      id: 'microsoft/phi-3-medium-128k-instruct:free',
+      provider: 'openrouter',
+      name: 'Phi-3 Medium 128K Instruct',
+      group: 'Phi'
+    },
+    {
+      id: 'meta-llama/llama-3-8b-instruct:free',
+      provider: 'openrouter',
+      name: 'Meta: Llama 3 8B Instruct',
+      group: 'Llama3'
+    },
+    {
+      id: 'mistralai/mistral-7b-instruct:free',
+      provider: 'openrouter',
+      name: 'Mistral: Mistral 7B Instruct',
+      group: 'Mistral'
+    }
+  ],
+  groq: [
+    {
+      id: 'llama3-8b-8192',
+      provider: 'groq',
+      name: 'LLaMA3 8B',
+      group: 'Llama3'
+    },
+    {
+      id: 'llama3-70b-8192',
+      provider: 'groq',
+      name: 'LLaMA3 70B',
+      group: 'Llama3'
+    },
+    {
+      id: 'mixtral-8x7b-32768',
+      provider: 'groq',
+      name: 'Mixtral 8x7B',
+      group: 'Mixtral'
+    },
+    {
+      id: 'gemma-7b-it',
+      provider: 'groq',
+      name: 'Gemma 7B',
+      group: 'Gemma'
     }
   ]
+}
+
+export function isTextToImageModel(model: Model): boolean {
+  return TEXT_TO_IMAGE_REGEX.test(model.id)
+}
+
+export function isEmbeddingModel(model: Model): boolean {
+  return EMBEDDING_REGEX.test(model.id)
+}
+
+export function isVisionModel(model: Model): boolean {
+  return VISION_REGEX.test(model.id)
 }

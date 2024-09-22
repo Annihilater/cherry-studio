@@ -3,8 +3,10 @@ import {
   SendMessageShortcut,
   setSendMessageShortcut as _setSendMessageShortcut,
   setTheme,
-  ThemeMode
+  setTopicPosition,
+  setWindowStyle
 } from '@renderer/store/settings'
+import { ThemeMode } from '@renderer/types'
 
 export function useSettings() {
   const settings = useAppSelector((state) => state.settings)
@@ -17,6 +19,12 @@ export function useSettings() {
     },
     setTheme(theme: ThemeMode) {
       dispatch(setTheme(theme))
+    },
+    setWindowStyle(windowStyle: 'transparent' | 'opaque') {
+      dispatch(setWindowStyle(windowStyle))
+    },
+    setTopicPosition(topicPosition: 'left' | 'right') {
+      dispatch(setTopicPosition(topicPosition))
     }
   }
 }

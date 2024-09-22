@@ -1,44 +1,82 @@
-import { TranslationOutlined } from '@ant-design/icons'
-import Logo from '@renderer/assets/images/logo.png'
+import { FolderOutlined, TranslationOutlined } from '@ant-design/icons'
+import { isMac } from '@renderer/config/constant'
+import { isLocalAi, UserAvatar } from '@renderer/config/env'
 import useAvatar from '@renderer/hooks/useAvatar'
+import { useSettings } from '@renderer/hooks/useSettings'
+import { useRuntime } from '@renderer/hooks/useStore'
+import { Avatar } from 'antd'
 import { FC } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
+
+import MinApp from '../MinApp'
+import UserPopup from '../Popups/UserPopup'
 
 const Sidebar: FC = () => {
   const { pathname } = useLocation()
   const avatar = useAvatar()
+  const { minappShow } = useRuntime()
+  const { generating } = useRuntime()
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { windowStyle } = useSettings()
 
   const isRoute = (path: string): string => (pathname === path ? 'active' : '')
 
+  const onEditUser = () => UserPopup.show()
+
+  const macTransparentWindow = isMac && windowStyle === 'transparent'
+  const sidebarBgColor = macTransparentWindow ? 'var(--navbar-background-mac)' : 'var(--navbar-background)'
+
+  const to = (path: string) => {
+    if (generating) {
+      window.message.warning({ content: t('message.switch.disabled'), key: 'switch-assistant' })
+      return
+    }
+    navigate(path)
+  }
+
   return (
-    <Container>
-      <StyledLink to="/">
-        <AvatarImg src={avatar || Logo} draggable={false} />
-      </StyledLink>
+    <Container
+      style={{
+        backgroundColor: minappShow ? 'var(--navbar-background)' : sidebarBgColor,
+        zIndex: minappShow ? 10000 : 'initial'
+      }}>
+      <AvatarImg src={avatar || UserAvatar} draggable={false} className="nodrag" onClick={onEditUser} />
       <MainMenus>
-        <Menus>
-          <StyledLink to="/">
+        <Menus onClick={MinApp.onClose}>
+          <StyledLink onClick={() => to('/')}>
             <Icon className={isRoute('/')}>
-              <i className="iconfont icon-chat"></i>
+              <i className="iconfont icon-chat" />
             </Icon>
           </StyledLink>
-          <StyledLink to="/apps">
-            <Icon className={isRoute('/apps')}>
-              <i className="iconfont icon-appstore"></i>
+          <StyledLink onClick={() => to('/agents')}>
+            <Icon className={isRoute('/agents')}>
+              <i className="iconfont icon-business-smart-assistant" />
             </Icon>
           </StyledLink>
-          <StyledLink to="/translate">
+          <StyledLink onClick={() => to('/translate')}>
             <Icon className={isRoute('/translate')}>
               <TranslationOutlined />
             </Icon>
           </StyledLink>
+          <StyledLink onClick={() => to('/apps')}>
+            <Icon className={isRoute('/apps')}>
+              <i className="iconfont icon-appstore" />
+            </Icon>
+          </StyledLink>
+          <StyledLink onClick={() => to('/files')}>
+            <Icon className={isRoute('/files')}>
+              <FolderOutlined />
+            </Icon>
+          </StyledLink>
         </Menus>
       </MainMenus>
-      <Menus>
-        <StyledLink to="/settings/provider">
+      <Menus onClick={MinApp.onClose}>
+        <StyledLink onClick={() => to(isLocalAi ? '/settings/assistant' : '/settings/provider')}>
           <Icon className={pathname.startsWith('/settings') ? 'active' : ''}>
-            <i className="iconfont icon-setting"></i>
+            <i className="iconfont icon-setting" />
           </Icon>
         </StyledLink>
       </Menus>
@@ -52,21 +90,22 @@ const Container = styled.div`
   align-items: center;
   padding: 8px 0;
   width: var(--sidebar-width);
-  height: calc(100vh - var(--navbar-height));
+  min-width: var(--sidebar-width);
+  height: ${isMac ? 'calc(100vh - var(--navbar-height))' : '100vh'};
   -webkit-app-region: drag !important;
   border-right: 0.5px solid var(--color-border);
-  margin-top: var(--navbar-height);
-  margin-bottom: var(--navbar-height);
-  background-color: var(--sidebar-background);
+  margin-top: ${isMac ? 'var(--navbar-height)' : 0};
+  transition: background-color 0.3s ease;
 `
 
-const AvatarImg = styled.img`
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
+const AvatarImg = styled(Avatar)`
+  width: 32px;
+  height: 32px;
   background-color: var(--color-background-soft);
-  margin: 5px 0;
-  margin-top: 5px;
+  margin-bottom: ${isMac ? '12px' : '12px'};
+  margin-top: ${isMac ? '5px' : '2px'};
+  border: none;
+  cursor: pointer;
 `
 const MainMenus = styled.div`
   display: flex;
@@ -80,15 +119,16 @@ const Menus = styled.div`
 `
 
 const Icon = styled.div`
-  width: 34px;
-  height: 34px;
+  width: 35px;
+  height: 35px;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 6px;
+  border-radius: 50%;
   margin-bottom: 5px;
   transition: background-color 0.2s ease;
   -webkit-app-region: none;
+  transition: all 0.2s ease;
   .iconfont,
   .anticon {
     color: var(--color-icon);
@@ -116,7 +156,7 @@ const Icon = styled.div`
   }
 `
 
-const StyledLink = styled(Link)`
+const StyledLink = styled.div`
   text-decoration: none;
   -webkit-app-region: none;
   &* {

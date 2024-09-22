@@ -1,35 +1,38 @@
+import { DEFAULT_CONEXTCOUNT } from '@renderer/config/constant'
 import { Assistant, Message } from '@renderer/types'
-import { GPTTokens } from 'gpt-tokens'
-import { takeRight } from 'lodash'
+import { isEmpty, takeRight } from 'lodash'
 
-import { getAssistantSettings } from './assistant'
+import FileManager from './file'
 
-export const filterAtMessages = (messages: Message[]) => {
-  return messages.filter((message) => message.type !== '@')
+export const filterMessages = (messages: Message[]) => {
+  return messages
+    .filter((message) => !['@', 'clear'].includes(message.type!))
+    .filter((message) => !isEmpty(message.content.trim()))
 }
 
-export function estimateInputTokenCount(text: string) {
-  const input = new GPTTokens({
-    model: 'gpt-4o',
-    messages: [{ role: 'user', content: text }]
-  })
+export function filterContextMessages(messages: Message[]): Message[] {
+  const clearIndex = messages.findLastIndex((message) => message.type === 'clear')
 
-  return input.usedTokens - 7
+  if (clearIndex === -1) {
+    return messages
+  }
+
+  return messages.slice(clearIndex + 1)
 }
 
-export function estimateHistoryTokenCount(assistant: Assistant, msgs: Message[]) {
-  const { contextCount } = getAssistantSettings(assistant)
+export function getContextCount(assistant: Assistant, messages: Message[]) {
+  const contextCount = assistant?.settings?.contextCount ?? DEFAULT_CONEXTCOUNT
+  const _messages = takeRight(messages, contextCount)
+  const clearIndex = _messages.findLastIndex((message) => message.type === 'clear')
+  const messagesCount = _messages.length
 
-  const all = new GPTTokens({
-    model: 'gpt-4o',
-    messages: [
-      { role: 'system', content: assistant.prompt },
-      ...filterAtMessages(takeRight(msgs, contextCount)).map((message) => ({
-        role: message.role,
-        content: message.content
-      }))
-    ]
-  })
+  if (clearIndex === -1) {
+    return contextCount
+  }
 
-  return all.usedTokens - 7
+  return messagesCount - (clearIndex + 1)
+}
+
+export function deleteMessageFiles(message: Message) {
+  message.files && FileManager.deleteFiles(message.files.map((f) => f.id))
 }

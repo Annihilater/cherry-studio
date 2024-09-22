@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { isLocalAi } from '@renderer/config/env'
 import { SYSTEM_MODELS } from '@renderer/config/models'
 import { Model, Provider } from '@renderer/types'
 import { uniqBy } from 'lodash'
@@ -18,79 +19,25 @@ export interface LlmState {
 }
 
 const initialState: LlmState = {
-  defaultModel: SYSTEM_MODELS.openai[0],
-  topicNamingModel: SYSTEM_MODELS.openai[0],
-  translateModel: SYSTEM_MODELS.openai[0],
+  defaultModel: SYSTEM_MODELS.silicon[0],
+  topicNamingModel: SYSTEM_MODELS.silicon[0],
+  translateModel: SYSTEM_MODELS.silicon[0],
   providers: [
-    {
-      id: 'openai',
-      name: 'OpenAI',
-      apiKey: '',
-      apiHost: 'https://api.openai.com',
-      models: SYSTEM_MODELS.openai.filter((m) => m.enabled),
-      isSystem: true,
-      enabled: true
-    },
     {
       id: 'silicon',
       name: 'Silicon',
       apiKey: '',
       apiHost: 'https://api.siliconflow.cn',
-      models: SYSTEM_MODELS.silicon.filter((m) => m.enabled),
+      models: SYSTEM_MODELS.silicon,
       isSystem: true,
-      enabled: false
+      enabled: true
     },
     {
-      id: 'deepseek',
-      name: 'deepseek',
+      id: 'ollama',
+      name: 'Ollama',
       apiKey: '',
-      apiHost: 'https://api.deepseek.com',
-      models: SYSTEM_MODELS.deepseek.filter((m) => m.enabled),
-      isSystem: true,
-      enabled: false
-    },
-    {
-      id: 'yi',
-      name: 'Yi',
-      apiKey: '',
-      apiHost: 'https://api.lingyiwanwu.com',
-      models: SYSTEM_MODELS.yi.filter((m) => m.enabled),
-      isSystem: true,
-      enabled: false
-    },
-    {
-      id: 'zhipu',
-      name: 'ZhiPu',
-      apiKey: '',
-      apiHost: 'https://open.bigmodel.cn/api/paas/v4/',
-      models: SYSTEM_MODELS.zhipu.filter((m) => m.enabled),
-      isSystem: true,
-      enabled: false
-    },
-    {
-      id: 'moonshot',
-      name: 'Moonshot AI',
-      apiKey: '',
-      apiHost: 'https://api.moonshot.cn',
-      models: SYSTEM_MODELS.moonshot.filter((m) => m.enabled),
-      isSystem: true,
-      enabled: false
-    },
-    {
-      id: 'baichuan',
-      name: 'BAICHUAN AI',
-      apiKey: '',
-      apiHost: 'https://api.baichuan-ai.com',
-      models: SYSTEM_MODELS.baichuan.filter((m) => m.enabled),
-      isSystem: true,
-      enabled: false
-    },
-    {
-      id: 'dashscope',
-      name: 'DashScope',
-      apiKey: '',
-      apiHost: 'https://dashscope.aliyuncs.com/compatible-mode/v1/',
-      models: SYSTEM_MODELS.dashscope.filter((m) => m.enabled),
+      apiHost: 'http://localhost:11434/v1/',
+      models: SYSTEM_MODELS.ollama,
       isSystem: true,
       enabled: false
     },
@@ -99,16 +46,124 @@ const initialState: LlmState = {
       name: 'Anthropic',
       apiKey: '',
       apiHost: 'https://api.anthropic.com/',
-      models: SYSTEM_MODELS.anthropic.filter((m) => m.enabled),
+      models: SYSTEM_MODELS.anthropic,
       isSystem: true,
       enabled: false
     },
     {
-      id: 'aihubmix',
-      name: 'AiHubMix',
+      id: 'openai',
+      name: 'OpenAI',
       apiKey: '',
-      apiHost: 'https://aihubmix.com',
-      models: SYSTEM_MODELS.aihubmix.filter((m) => m.enabled),
+      apiHost: 'https://api.openai.com',
+      models: SYSTEM_MODELS.openai,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'gemini',
+      name: 'Gemini',
+      apiKey: '',
+      apiHost: 'https://generativelanguage.googleapis.com',
+      models: SYSTEM_MODELS.gemini,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'deepseek',
+      name: 'deepseek',
+      apiKey: '',
+      apiHost: 'https://api.deepseek.com',
+      models: SYSTEM_MODELS.deepseek,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'github',
+      name: 'Github Models',
+      apiKey: '',
+      apiHost: 'https://models.inference.ai.azure.com/',
+      models: SYSTEM_MODELS.github,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'yi',
+      name: 'Yi',
+      apiKey: '',
+      apiHost: 'https://api.lingyiwanwu.com',
+      models: SYSTEM_MODELS.yi,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'zhipu',
+      name: 'ZhiPu',
+      apiKey: '',
+      apiHost: 'https://open.bigmodel.cn/api/paas/v4/',
+      models: SYSTEM_MODELS.zhipu,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'moonshot',
+      name: 'Moonshot AI',
+      apiKey: '',
+      apiHost: 'https://api.moonshot.cn',
+      models: SYSTEM_MODELS.moonshot,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'baichuan',
+      name: 'BAICHUAN AI',
+      apiKey: '',
+      apiHost: 'https://api.baichuan-ai.com',
+      models: SYSTEM_MODELS.baichuan,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'dashscope',
+      name: 'DashScope',
+      apiKey: '',
+      apiHost: 'https://dashscope.aliyuncs.com/compatible-mode/v1/',
+      models: SYSTEM_MODELS.dashscope,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'stepfun',
+      name: 'StepFun',
+      apiKey: '',
+      apiHost: 'https://api.stepfun.com',
+      models: SYSTEM_MODELS.stepfun,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'doubao',
+      name: 'doubao',
+      apiKey: '',
+      apiHost: 'https://ark.cn-beijing.volces.com/api/v3/',
+      models: SYSTEM_MODELS.doubao,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'minimax',
+      name: 'MiniMax',
+      apiKey: '',
+      apiHost: 'https://api.minimax.chat/v1/',
+      models: SYSTEM_MODELS.minimax,
+      isSystem: true,
+      enabled: false
+    },
+    {
+      id: 'graphrag-kylin-mountain',
+      name: 'GraphRAG',
+      apiKey: '',
+      apiHost: '',
+      models: [],
       isSystem: true,
       enabled: false
     },
@@ -117,7 +172,7 @@ const initialState: LlmState = {
       name: 'OpenRouter',
       apiKey: '',
       apiHost: 'https://openrouter.ai/api/v1/',
-      models: SYSTEM_MODELS.openrouter.filter((m) => m.enabled),
+      models: SYSTEM_MODELS.openrouter,
       isSystem: true,
       enabled: false
     },
@@ -126,16 +181,16 @@ const initialState: LlmState = {
       name: 'Groq',
       apiKey: '',
       apiHost: 'https://api.groq.com/openai',
-      models: SYSTEM_MODELS.groq.filter((m) => m.enabled),
+      models: SYSTEM_MODELS.groq,
       isSystem: true,
       enabled: false
     },
     {
-      id: 'ollama',
-      name: 'Ollama',
+      id: 'aihubmix',
+      name: 'AiHubMix',
       apiKey: '',
-      apiHost: 'http://localhost:11434/v1/',
-      models: [],
+      apiHost: 'https://aihubmix.com',
+      models: SYSTEM_MODELS.aihubmix,
       isSystem: true,
       enabled: false
     }
@@ -147,9 +202,35 @@ const initialState: LlmState = {
   }
 }
 
+const getIntegratedInitialState = () => {
+  const model = JSON.parse(import.meta.env.VITE_RENDERER_INTEGRATED_MODEL)
+
+  return {
+    defaultModel: model,
+    topicNamingModel: model,
+    translateModel: model,
+    providers: [
+      {
+        id: 'ollama',
+        name: 'Ollama',
+        apiKey: 'ollama',
+        apiHost: 'http://localhost:15537/v1/',
+        models: [model],
+        isSystem: true,
+        enabled: true
+      }
+    ],
+    settings: {
+      ollama: {
+        keepAliveTime: 3600
+      }
+    }
+  } as LlmState
+}
+
 const settingsSlice = createSlice({
   name: 'llm',
-  initialState,
+  initialState: isLocalAi ? getIntegratedInitialState() : initialState,
   reducers: {
     updateProvider: (state, action: PayloadAction<Provider>) => {
       state.providers = state.providers.map((p) => (p.id === action.payload.id ? { ...p, ...action.payload } : p))
